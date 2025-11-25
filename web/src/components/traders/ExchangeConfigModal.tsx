@@ -18,6 +18,7 @@ import { getShortName } from './utils'
 
 interface ExchangeConfigModalProps {
   allExchanges: Exchange[]
+  configuredExchanges: Exchange[]
   editingExchangeId: string | null
   onSave: (
     exchangeId: string,
@@ -36,6 +37,7 @@ interface ExchangeConfigModalProps {
 
 export function ExchangeConfigModal({
   allExchanges,
+  configuredExchanges,
   editingExchangeId,
   onSave,
   onDelete,
@@ -77,27 +79,33 @@ export function ExchangeConfigModal({
 
   // 获取当前编辑的交易所信息
   // 注意：後端返回的字段名是 id (如 "binance")
+  // Use allExchanges for available exchanges list, configuredExchanges for user's actual config
   const selectedExchange = allExchanges?.find(
+    (e: any) => e.id === selectedExchangeId
+  )
+
+  // Get user's configured settings (including testnet value)
+  const configuredExchange = configuredExchanges?.find(
     (e: any) => e.id === selectedExchangeId
   )
 
   // 如果是编辑现有交易所，初始化表单数据
   useEffect(() => {
-    if (editingExchangeId && selectedExchange) {
-      setApiKey(selectedExchange.apiKey || '')
-      setSecretKey(selectedExchange.secretKey || '')
+    if (editingExchangeId && configuredExchange) {
+      setApiKey(configuredExchange.apiKey || '')
+      setSecretKey(configuredExchange.secretKey || '')
       setPassphrase('') // Don't load existing passphrase for security
-      setTestnet(selectedExchange.testnet || false)
+      setTestnet(configuredExchange.testnet || false)
 
       // Aster 字段
-      setAsterUser(selectedExchange.asterUser || '')
-      setAsterSigner(selectedExchange.asterSigner || '')
+      setAsterUser(configuredExchange.asterUser || '')
+      setAsterSigner(configuredExchange.asterSigner || '')
       setAsterPrivateKey('') // Don't load existing private key for security
 
       // Hyperliquid 字段
-      setHyperliquidWalletAddr(selectedExchange.hyperliquidWalletAddr || '')
+      setHyperliquidWalletAddr(configuredExchange.hyperliquidWalletAddr || '')
     }
-  }, [editingExchangeId, selectedExchange])
+  }, [editingExchangeId, configuredExchange])
 
   // 加载服务器IP（当选择binance时）
   useEffect(() => {
@@ -826,6 +834,29 @@ export function ExchangeConfigModal({
                         style={{ color: '#848E9C' }}
                       >
                         {t('hyperliquidMainWalletAddressDesc', language)}
+                      </div>
+                    </div>
+
+                    {/* Use Testnet */}
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={testnet}
+                          onChange={(e) =>
+                            setTestnet(e.target.checked)
+                          }
+                          className="w-4 h-4"
+                        />
+                        <label className="text-sm text-[#EAECEF]">
+                          Enable Testnet
+                        </label>
+                      </div>
+                      <div
+                        className="text-xs mt-1"
+                        style={{ color: '#848E9C' }}
+                      >
+                        Enable to connect to exchange test environment for simulated trading
                       </div>
                     </div>
                   </>
